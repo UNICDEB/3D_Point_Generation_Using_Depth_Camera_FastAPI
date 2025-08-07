@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>RealSense 3D Point Generator</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <h1>3D Point Generation from Depth Camera</h1>
+    <div class="button-container">
+        <button onclick="startStream()">Start</button>
+        <button onclick="sendData()">Send</button>
+        <button onclick="clearData()">Clear</button>
+        <button onclick="exitStream()">Exit</button>
+    </div>
+    <div id="video-container">
+        <img id="video" onclick="clickPixel(event)">
+    </div>
+    <div id="points-list"></div>
+    <script src="/static/script.js"></script>
+</body>
+</html>

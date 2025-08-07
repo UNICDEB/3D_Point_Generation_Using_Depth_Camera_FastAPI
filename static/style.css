@@ -1,0 +1,34 @@
+body {
+    font-family: Arial, sans-serif;
+    text-align: center;
+    background-color: #1e1e1e;
+    color: white;
+}
+
+.button-container {
+    margin: 20px;
+}
+
+button {
+    margin: 10px;
+    padding: 10px 20px;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+#video-container {
+    margin: 20px;
+}
+
+#video {
+    border: 3px solid #ccc;
+    width: 1280px;
+    height: 720px;
+    cursor: crosshair;
+}
+
+#points-list {
+    margin-top: 20px;
+    max-height: 300px;
+    overflow-y: auto;
+}
