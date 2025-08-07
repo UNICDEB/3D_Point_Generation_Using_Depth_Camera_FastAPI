@@ -2,6 +2,7 @@ from fastapi import FastAPI, Request, WebSocket, WebSocketDisconnect
 from fastapi.responses import StreamingResponse, HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
+from fastapi.responses import PlainTextResponse
 import uvicorn
 import cv2
 import io
@@ -21,10 +22,18 @@ points = []
 def index(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
 
+
+
 @app.get("/video_feed")
 def video_feed():
     def generate():
-        camera.start()
+        try:
+            camera.start()
+        except RuntimeError as e:
+            yield (b'--frame\r\n'
+                   b'Content-Type: text/plain\r\n\r\n' +
+                   f"{str(e)}".encode() + b'\r\n')
+            
         while camera.running:
             color_image, depth_image, _ = camera.get_frame()
             if color_image is None:

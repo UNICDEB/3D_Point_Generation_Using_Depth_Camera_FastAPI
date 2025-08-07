@@ -17,10 +17,14 @@ class RealSenseCamera:
     def start(self):
         if self.running:
             return  # Already running; don't restart
-        self.pipeline.start(self.config)
-        self.profile = self.pipeline.get_active_profile()
-        self.intrinsics = self.profile.get_stream(rs.stream.depth).as_video_stream_profile().get_intrinsics()
-        self.running = True
+        try:
+            self.pipeline.start(self.config)
+            self.profile = self.pipeline.get_active_profile()
+            self.intrinsics = self.profile.get_stream(rs.stream.depth).as_video_stream_profile().get_intrinsics()
+            self.running = True
+        except Exception as e:
+            self.running = False
+            raise RuntimeError("Camera Not Connected. Connect the Camera and tray again.")
 
     def get_frame(self):
         if not self.running:
