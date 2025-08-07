@@ -15,6 +15,8 @@ class RealSenseCamera:
         self.lock = threading.Lock()
 
     def start(self):
+        if self.running:
+            return  # Already running; don't restart
         self.pipeline.start(self.config)
         self.profile = self.pipeline.get_active_profile()
         self.intrinsics = self.profile.get_stream(rs.stream.depth).as_video_stream_profile().get_intrinsics()
@@ -37,8 +39,11 @@ class RealSenseCamera:
 
     def pixel_to_point(self, x, y, depth_frame):
         depth = depth_frame.get_distance(x, y)
+        if depth == 0:
+            return None, depth  # for invalid depth value
         point = rs.rs2_deproject_pixel_to_point(self.intrinsics, [x, y], depth)
-        return point
+        point_mm = [round(coord * 1000) for coord in point]
+        return point_mm, depth
 
     def stop(self):
         self.pipeline.stop()

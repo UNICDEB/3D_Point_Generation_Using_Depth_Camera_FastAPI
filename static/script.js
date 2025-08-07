@@ -12,17 +12,42 @@ function clickPixel(event) {
         .then(data => updatePointList());
 }
 
+// function updatePointList() {
+//     fetch('/get_points/')
+//         .then(response => response.json())
+//         .then(data => {
+//             const container = document.getElementById('points-list');
+//             container.innerHTML = '<h3>Captured Points (x, y, z):</h3>';
+//             data.forEach((pt, i) => {
+//                 container.innerHTML += `<p>${i+1}. (${pt.world.join(', ')})</p>`;
+//             });
+//         });
+// }
+
 function updatePointList() {
     fetch('/get_points/')
         .then(response => response.json())
         .then(data => {
             const container = document.getElementById('points-list');
-            container.innerHTML = '<h3>Captured Points (x, y, z):</h3>';
-            data.forEach((pt, i) => {
-                container.innerHTML += `<p>${i+1}. (${pt.world.join(', ')})</p>`;
+            container.innerHTML = '';
+
+            let count = 1;
+            data.forEach((pt) => {
+                if (pt.world) {
+                    const coord = pt.world.join(', ');
+                    const div = document.createElement('div');
+                    div.className = 'mb-2';
+                    div.innerHTML = `<strong>${count++}.</strong> (${coord})`;
+                    container.appendChild(div);
+                }
             });
+
+            if (count === 1) {
+                container.innerHTML = '<p class="text-muted">No valid points captured yet.</p>';
+            }
         });
 }
+
 
 function sendData() {
     fetch('/send/', { method: 'POST' })
@@ -44,3 +69,8 @@ function exitStream() {
             alert("Stream stopped.");
         });
 }
+
+// Auto cleanup fun 
+window.addEventListener("beforeunload", function (e) {
+    navigator.sendBeacon("/exit/");
+});

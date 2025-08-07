@@ -7,6 +7,7 @@ import cv2
 import io
 from camera import RealSenseCamera
 import threading
+import requests
 
 app = FastAPI()
 camera = RealSenseCamera()
@@ -29,7 +30,10 @@ def video_feed():
             if color_image is None:
                 continue
             for pt in points:
-                cv2.circle(color_image, (pt["pixel"][0], pt["pixel"][1]), 5, (0, 0, 255), -1)
+                color = (0, 255, 0)  # green default
+                if pt["color"] == "red":
+                    color = (0, 0, 255)
+                cv2.circle(color_image, tuple(pt["pixel"]), 6, color, -1)
             _, buffer = cv2.imencode('.jpg', color_image)
             frame = buffer.tobytes()
             yield (b'--frame\r\n'
@@ -39,17 +43,31 @@ def video_feed():
 @app.post("/click_point/")
 async def click_point(x: int, y: int):
     _, _, depth_frame = camera.get_frame()
-    point = camera.pixel_to_point(x, y, depth_frame)
+    point, depth = camera.pixel_to_point(x, y, depth_frame)
+
+    # Invalid depth (z = 0)
+    if depth == 0:
+        pt_data = {
+            "pixel": [x, y],
+            "world": None,
+            "color": "red"
+        }
+        points.append(pt_data)
+        return pt_data
+
+    # Valid point
     pt_data = {
         "pixel": [x, y],
-        "world": [round(p, 3) for p in point]
+        "world": point,     # already in mm
+        "color": "green"
     }
     points.append(pt_data)
     return pt_data
 
+
 @app.get("/get_points/")
 def get_points():
-    return points
+    return [pt for pt in points if pt["world"] is not None]
 
 @app.post("/clear/")
 def clear_points():
@@ -58,16 +76,22 @@ def clear_points():
 
 @app.post("/send/")
 def send_to_server():
-    # import requests
+    # valid_points = [pt["world"] for pt in points if pt["world"] is not None]
+    # if not valid_points:
+    #     return {"status": "no valid points to send"}
+
     # url = "http://YOUR_SERVER_IP:PORT/receive_coords"
-    # response = requests.post(url, json={"points": points})
+    # response = requests.post(url, json={"points": valid_points})
     # return {"status": "sent", "server_response": response.text}
-    print("Send to the server")
+    print("Send Done")
+    return {'Message': 'Send Succesfully'}
 
 @app.post("/exit/")
 def stop_camera():
-    camera.stop()
+    if camera.running:
+        camera.stop()
     return {"status": "stopped"}
+
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)
