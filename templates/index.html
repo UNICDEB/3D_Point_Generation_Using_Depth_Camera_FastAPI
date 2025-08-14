@@ -42,12 +42,12 @@
                 <button class="btn btn-success w-100" onclick="startStream()">Start</button>
                 <button class="btn btn-primary w-100" onclick="sendData()">Send</button>
                 <button class="btn btn-warning w-100" onclick="clearData()">Clear</button>
-                <button class="btn btn-danger w-100" onclick="exitStream()">Exit</button>
+                <button class="btn btn-danger w-100" onclick="exitStream()">CameraStop</button>
             </div>
 
             <!-- Center Panel: Video -->
             <div class="col-md-8 d-flex justify-content-center">
-                <img id="video" src="/static/placeholder.jpg" class="border border-light rounded shadow" onclick="clickPixel(event)">
+                <img id="video" class="border border-light rounded shadow" onclick="clickPixel(event)">
             </div>
 
             <!-- Right Panel: Results -->
