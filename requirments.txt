@@ -1,0 +1,6 @@
+fastapi 
+uvicorn 
+jinja2 
+opencv-python 
+pyrealsense2 
+requests
