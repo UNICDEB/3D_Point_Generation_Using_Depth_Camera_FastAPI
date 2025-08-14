@@ -28,25 +28,38 @@ def index(request: Request):
 def video_feed():
     def generate():
         try:
-            camera.start()
+            if not camera.running:
+                camera.start()
         except RuntimeError as e:
             yield (b'--frame\r\n'
-                   b'Content-Type: text/plain\r\n\r\n' +
-                   f"{str(e)}".encode() + b'\r\n')
-            
+                b'Content-Type: text/plain\r\n\r\n' +
+                f"{str(e)}".encode() + b'\r\n')
+            return  # stop generator if camera not connected
+
         while camera.running:
-            color_image, depth_image, _ = camera.get_frame()
+            try:
+                color_image, depth_image, _ = camera.get_frame()
+            except RuntimeError as e:
+                print(f"Camera stopped: {e}")
+                break  # exit loop if camera stopped
+            except Exception as e:
+                print(f"Unexpected error: {e}")
+                break
+
             if color_image is None:
                 continue
+
             for pt in points:
                 color = (0, 255, 0)  # green default
                 if pt["color"] == "red":
                     color = (0, 0, 255)
                 cv2.circle(color_image, tuple(pt["pixel"]), 6, color, -1)
+
             _, buffer = cv2.imencode('.jpg', color_image)
             frame = buffer.tobytes()
             yield (b'--frame\r\n'
-                   b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
+                b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
+
     return StreamingResponse(generate(), media_type="multipart/x-mixed-replace; boundary=frame")
 
 @app.post("/click_point/")
